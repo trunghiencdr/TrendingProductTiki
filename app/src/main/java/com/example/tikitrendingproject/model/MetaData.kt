@@ -9,5 +9,5 @@ data class MetaData(
     val subTitle: String,
     @SerializedName("background_image")
     val backgroundImage: String,
-    val items: ProductCategory
+    val items: ArrayList<ProductCategory>
 )

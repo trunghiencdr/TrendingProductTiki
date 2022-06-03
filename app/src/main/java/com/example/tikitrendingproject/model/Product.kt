@@ -16,4 +16,4 @@ data class Product (
     val shortDescription: String,
     @SerializedName("thumbnail_url")
     val thumbnailUrl: String
-        )
+    )
