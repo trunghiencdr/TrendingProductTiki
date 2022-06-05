@@ -2,26 +2,34 @@ package com.example.tikitrendingproject.view
 
 import android.text.Layout
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.tikitrendingproject.R
 import com.example.tikitrendingproject.databinding.ProductCategoryRowBinding
 import com.example.tikitrendingproject.model.Product
 import com.example.tikitrendingproject.model.ProductCategory
 import java.util.concurrent.Executors
 
-class ProductCategoryAdapter:
+class ProductCategoryAdapter(val action: Action<ProductCategory>):
 ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
     AsyncDifferConfig.Builder<ProductCategory>(ProductCategoryDiffUtil())
     .setBackgroundThreadExecutor(Executors.newSingleThreadExecutor())
     .build()){
+    var oldView: View? = null
     class MyViewHolder(private val binding: ProductCategoryRowBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: ProductCategory?) {
+        fun bind(action: Action<ProductCategory>, item: ProductCategory?) {
             binding.productCategory = item
+            binding.action = action
             binding.executePendingBindings()
         }
+
+    }
+
+    fun setChooseItem(itemIndex: Int){
 
     }
 
@@ -31,7 +39,11 @@ ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        if(position==0){
+            oldView = holder.itemView
+            holder.itemView.setBackgroundResource(R.drawable.bg_choosed_category)
+        }
+        holder.bind(action, getItem(position))
     }
 }
 

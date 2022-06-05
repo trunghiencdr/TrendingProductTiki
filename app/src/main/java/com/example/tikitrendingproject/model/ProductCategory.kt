@@ -8,5 +8,5 @@ data class ProductCategory(
     @SerializedName("category_id")
     val categoryId: Int,
     @SerializedName("images")
-    val images: List<String>
+    val images: ArrayList<String>
 )

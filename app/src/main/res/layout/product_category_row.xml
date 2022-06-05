@@ -2,32 +2,45 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
+        <import type="com.example.tikitrendingproject.model.ProductCategory"></import>
         <variable
             name="productCategory"
             type="com.example.tikitrendingproject.model.ProductCategory" />
+        <variable
+
+            name="action"
+            type="com.example.tikitrendingproject.view.Action&lt;ProductCategory&gt;" />
     </data>
     <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:elevation="2dp"
+        app:cardCornerRadius="10dp">
        <LinearLayout
            android:id="@+id/linear_layout_category"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:orientation="vertical"
+           android:padding="5dp"
+           android:onClick='@{(view)->action.onClickWithBackground(view, productCategory)}'>
            <ImageView
                android:layout_width="80dp"
                android:layout_height="80dp"
                android:layout_marginTop="5dp"
                android:layout_marginStart="20dp"
                android:layout_marginEnd="20dp"
-               loadImage='@{productCategory.images.size()>0?productCategory.images[0]:""'>
+               loadImage='@{productCategory.images.size()>0?productCategory.images.get(0):""}'>
            </ImageView>
 
            <TextView
-               android:layout_width="wrap_content"
+               android:layout_width="match_parent"
                android:layout_height="wrap_content"
                style="@style/TextH1"
-               android:text='@{productCategory.title}'>
+               android:text='@{productCategory.title}'
+               android:ellipsize="end"
+               android:minLines="2"
+               android:maxLines="2"
+               android:textAlignment="center">
 
            </TextView>
        </LinearLayout>

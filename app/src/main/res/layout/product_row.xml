@@ -19,15 +19,16 @@
         android:layout_margin="1dp"
         app:cardCornerRadius="10dp">
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:padding="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/imageViewProduct"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="wrap_content"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_launcher_background"
+                loadImage='@{product.thumbnailUrl??""}'
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +53,7 @@
                 style="@style/Widget.AppCompat.RatingBar.Small"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:rating="5"
+                android:rating='@{product.ratingAverage}'
                 android:stepSize="0.1"
                 android:numStars="5"
                 android:isIndicator="false"
@@ -69,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/imageViewProduct"
                 android:layout_marginTop="5dp"
-                android:text='@{product.quantitySold.value}'
+                android:text='@{String.valueOf(product.quantitySold.value)??product.quantitySold.text}'
                 app:layout_constraintEnd_toEndOf="@id/txtProductName"
                 app:layout_constraintTop_toBottomOf="@id/txtProductName"
                 app:layout_constraintStart_toEndOf="@id/ratingBarProduct">
@@ -83,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/imageViewProduct"
                 android:layout_marginTop="5dp"
-                android:text='@{product.price}'
+                android:text='@{product.price + ""}'
                 app:layout_constraintStart_toStartOf="@id/txtProductName"
                 app:layout_constraintTop_toBottomOf="@id/txtSoldQuantity">
 

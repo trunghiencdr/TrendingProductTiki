@@ -21,7 +21,7 @@ class TrendingProductAdapter
     class MyViewHolder(var binding: ProductRowBinding): RecyclerView.ViewHolder(binding.root){
         fun bind(item: Product?) {
             binding.product = item
-            binding.widthOfScreen = 200
+            binding.widthOfScreen = 300
             binding.executePendingBindings()
 
         }
@@ -39,11 +39,11 @@ class TrendingProductAdapter
 
 class ProductDiffUtil: DiffUtil.ItemCallback<Product>(){
     override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
-        TODO("Not yet implemented")
+        return oldItem.name == newItem.name
     }
 
     override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
-        TODO("Not yet implemented")
+        return oldItem==newItem
     }
 
 }
