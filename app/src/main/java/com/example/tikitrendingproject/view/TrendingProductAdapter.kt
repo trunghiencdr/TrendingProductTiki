@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tikitrendingproject.databinding.ProductRowBinding
 import com.example.tikitrendingproject.model.Product
+import com.example.tikitrendingproject.model.QuantitySold
 import java.util.concurrent.Executors
 
 class TrendingProductAdapter
@@ -25,7 +26,6 @@ class TrendingProductAdapter
             binding.executePendingBindings()
 
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

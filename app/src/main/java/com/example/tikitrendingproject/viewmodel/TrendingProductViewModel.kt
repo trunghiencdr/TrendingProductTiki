@@ -1,6 +1,7 @@
 package com.example.tikitrendingproject.viewmodel
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Resources
 import android.media.Image
 import android.util.Log
@@ -8,26 +9,39 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.lifecycle.*
+import androidx.room.Database
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestListener
 import com.example.tikitrendingproject.R
+import com.example.tikitrendingproject.model.MetaData
 import com.example.tikitrendingproject.model.Product
 import com.example.tikitrendingproject.model.ProductCategory
+import com.example.tikitrendingproject.model.ProductCategoryCrossRef
 import com.example.tikitrendingproject.retrofit.RetroInstance
 import com.example.tikitrendingproject.retrofit.repository.TrendingProductRepository
 import com.example.tikitrendingproject.retrofit.service.TrendingProductService
+import com.example.tikitrendingproject.room.DatabaseBuilder
+import com.example.tikitrendingproject.room.MyRoomDatabase
+import com.example.tikitrendingproject.room.dao.ImageDao
+import com.example.tikitrendingproject.room.repository.MetaDataRepository
+import com.example.tikitrendingproject.room.repository.TopTrendingRepository
 import com.example.tikitrendingproject.view.Action
 import com.example.tikitrendingproject.view.ProductCategoryAdapter
 import com.example.tikitrendingproject.view.TrendingProductAdapter
 import kotlinx.coroutines.*
 
 class TrendingProductViewModel constructor(
-    private val trendingProductRepository: TrendingProductRepository
+    private val trendingProductRepository: TrendingProductRepository,
+    private val context: Context
 ) :
     ViewModel(), DefaultLifecycleObserver, Action<ProductCategory> {
 
     companion object {
         val TAG = TrendingProductViewModel::class.java.name
     }
+
+    var topTrendingRepository = TopTrendingRepository(context)
+
 
     var _urlBackground= MutableLiveData<String?>()
     var _trendingProduct = MutableLiveData<ArrayList<Product>?>()
@@ -71,9 +85,12 @@ class TrendingProductViewModel constructor(
             val response = trendingProductRepository.getTrendingProduct(cursor, limit)
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
-                    _urlBackground.postValue(response.body()?.data?.metaData?.backgroundImage)
-                    _trendingProductCategory.postValue(response.body()?.data?.metaData?.items)
-                    callTrendingProductByCategoryId(response.body()?.data?.metaData?.items?.get(0)!!.categoryId,0, 20)
+                   response.body()?.data?.metaData?.also {
+                        _urlBackground.postValue(it.backgroundImage)
+                        _trendingProductCategory.postValue(it.items)
+                        callTrendingProductByCategoryId(it.items?.get(0)!!.categoryId,0, 20)
+                        saveDataToSql(it)
+                    }
 //                        loading.value = false
                 } else {
                     _trendingProductCategory.postValue(null)
@@ -84,6 +101,12 @@ class TrendingProductViewModel constructor(
         }
     }
 
+    private suspend fun saveDataToSql(metaData: MetaData) {
+        topTrendingRepository.insertMetaData(metaData)
+        metaData.items?.forEach{
+            it -> topTrendingRepository.insertProductCategory(it)
+        }
+    }
 
 
     fun callTrendingProductByCategoryId(categoryId: Int, cursor: Int, limit: Int) {
@@ -92,7 +115,10 @@ class TrendingProductViewModel constructor(
                 trendingProductRepository.getTrendingProductByCategoryId(categoryId, cursor, limit)
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
-                    _trendingProduct.postValue(response.body()?.data?.data)
+                    response.body()?.data?.data.also {
+                        _trendingProduct.postValue(it)
+                        saveProductIntoLocal(categoryId, it)
+                    }
                     loading.value = false
                 } else {
                     _trendingProduct.postValue(null)
@@ -100,6 +126,23 @@ class TrendingProductViewModel constructor(
                 }
             }
         }
+    }
+
+    private suspend fun saveProductIntoLocal(cateId: Int, products: ArrayList<Product>?) {
+        products?.forEach {
+            it.apply {
+                quantitySold?.productId = id
+            }
+
+            topTrendingRepository.apply {
+                var kq = insertProduct(it)
+                Log.d("insert product", "$kq ")
+                insertQuantitySold(it.quantitySold)
+                insertProductCategoryCrossRef(ProductCategoryCrossRef(it.id, cateId))
+            }
+        }
+
+
     }
 
     fun setDataForCategory(it: ArrayList<ProductCategory>?) {
@@ -113,6 +156,8 @@ class TrendingProductViewModel constructor(
     fun setImageBackground(imageView: ImageView, it: String?) {
         Glide.with(imageView.context)
             .load(it)
+            .error(R.drawable.error_image)
+            .placeholder(R.drawable.error_image)
             .into(imageView)
 
     }
@@ -126,9 +171,9 @@ class TrendingProductViewModel constructor(
     }
 
     override fun onClickWithBackground(view: View, t: ProductCategory) {
-        productCategoryAdapter.oldView?.setBackgroundResource(R.drawable.bg_normal_category)
-        view.setBackgroundResource(R.drawable.bg_choosed_category)
+        productCategoryAdapter.oldView.setBackgroundResource(R.drawable.bg_normal_category)
         productCategoryAdapter.oldView = view
+        view.setBackgroundResource(R.drawable.bg_choosed_category)
         callTrendingProductByCategoryId(t.categoryId, 0, 20)
     }
 

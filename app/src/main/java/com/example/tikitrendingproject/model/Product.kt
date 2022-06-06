@@ -1,19 +1,47 @@
 package com.example.tikitrendingproject.model
 
+import androidx.room.*
 import com.google.gson.annotations.SerializedName
 
-data class Product (
-    val id: Int,
-    val name: String,
+@Entity(
+indices = [
+    Index(value = ["name", "price"], unique = false)
+])
+data class Product(
+    @PrimaryKey
+    var id: Int,
+    var name: String,
     @SerializedName("original_price")
-    val originalPrice: Int,
-    val price: Int,
+    var originalPrice: Int,
+    var price: Int,
     @SerializedName("quantity_sold")
-    val quantitySold: QuantitySold,
+    @Ignore
+    var quantitySold: QuantitySold?=null,
     @SerializedName("rating_average")
-    val ratingAverage: Float,
+    var ratingAverage: Float,
     @SerializedName("short_description")
-    val shortDescription: String,
+    var shortDescription: String,
     @SerializedName("thumbnail_url")
-    val thumbnailUrl: String
-    )
+    var thumbnailUrl: String,
+)
+ {
+    constructor(
+        id: Int,
+        name: String,
+        originalPrice: Int,
+        price: Int,
+        ratingAverage: Float,
+        shortDescription: String,
+        thumbnailUrl: String
+    ) :
+            this(
+                id,
+                name,
+                originalPrice,
+                price,
+                null,
+                ratingAverage,
+                shortDescription,
+                thumbnailUrl
+            )
+}

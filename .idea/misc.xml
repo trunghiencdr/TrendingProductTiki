@@ -3,14 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/QuickAcess/Desktop/TrendingProductTiki/app/src/main/res/drawable/bg_choosed_category.xml" value="0.114" />
-        <entry key="..\:/QuickAcess/Desktop/TrendingProductTiki/app/src/main/res/drawable/bg_normal_category.xml" value="0.1" />
-        <entry key="..\:/QuickAcess/Desktop/TrendingProductTiki/app/src/main/res/layout/activity_main.xml" value="0.15051903114186851" />
-        <entry key="..\:/QuickAcess/Desktop/TrendingProductTiki/app/src/main/res/layout/product_category_row.xml" value="0.1" />
-        <entry key="..\:/QuickAcess/Desktop/TrendingProductTiki/app/src/main/res/layout/product_row.xml" value="0.2" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="app/src/main/res/layout/product_category_row.xml" value="0.3421875" />
-        <entry key="app/src/main/res/layout/product_row.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/product_row.xml" value="0.1" />
       </map>
     </option>
   </component>

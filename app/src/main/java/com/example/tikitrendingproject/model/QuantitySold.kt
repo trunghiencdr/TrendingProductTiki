@@ -1,6 +1,12 @@
 package com.example.tikitrendingproject.model
 
-data class QuantitySold (
-    val text: String,
-    val value: Int
-    )
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
+data class QuantitySold(
+    @PrimaryKey
+    var productId: Int,
+    var text: String,
+    var value: Int
+)

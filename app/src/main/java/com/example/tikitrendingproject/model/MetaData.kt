@@ -1,13 +1,33 @@
 package com.example.tikitrendingproject.model
 
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
-
+@Entity
 data class MetaData(
+    @PrimaryKey
+    var type: String,
     @SerializedName("title")
-    val title: String,
+    var title: String,
     @SerializedName("sub_title")
-    val subTitle: String,
+    var subTitle: String,
     @SerializedName("background_image")
-    val backgroundImage: String,
-    val items: ArrayList<ProductCategory>
-)
+    var backgroundImage: String,
+    @Ignore
+    var items: ArrayList<ProductCategory>?
+){
+    constructor(
+        type: String,
+        title: String,
+        subTitle: String,
+        backgroundImage: String
+    ): this(
+        type,
+        title,
+        subTitle,
+        backgroundImage,
+        null
+    )
+}

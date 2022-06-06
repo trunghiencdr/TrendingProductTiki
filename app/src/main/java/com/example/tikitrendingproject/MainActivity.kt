@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
      fun getViewModelCall(): TrendingProductViewModel {
         val trendingProductRepository = TrendingProductRepository(RetroInstance.trendingProductService)
-        val viewModelFactory = TrendingProductViewModelFactory(trendingProductRepository)
+        val viewModelFactory = TrendingProductViewModelFactory(trendingProductRepository, this)
         viewModel = ViewModelProvider(this, viewModelFactory).get(TrendingProductViewModel::class.java)
         viewModel.trendingProductCategory.observe(this, Observer {
             viewModel.setDataForCategory(it)

@@ -15,6 +15,18 @@ object RetroInstance {
             .build()
 
 
+        private var INSTANCE : Retrofit?=null
+
+        fun getInstance(): Retrofit{
+            if(INSTANCE == null){
+                synchronized(Retrofit::class){
+                    INSTANCE = retrofit()
+                }
+            }
+
+            return INSTANCE!!
+
+        }
         fun retrofit(): Retrofit{
                 return Retrofit.Builder()
                     .baseUrl(BASE_URL)
@@ -26,7 +38,7 @@ object RetroInstance {
 
 
         val trendingProductService: TrendingProductService by lazy {
-            retrofit().create(TrendingProductService::class.java)
+            getInstance().create(TrendingProductService::class.java)
         }
 
 }

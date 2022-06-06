@@ -19,7 +19,7 @@ ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
     AsyncDifferConfig.Builder<ProductCategory>(ProductCategoryDiffUtil())
     .setBackgroundThreadExecutor(Executors.newSingleThreadExecutor())
     .build()){
-    var oldView: View? = null
+    lateinit var oldView: View
     class MyViewHolder(private val binding: ProductCategoryRowBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(action: Action<ProductCategory>, item: ProductCategory?) {
             binding.productCategory = item

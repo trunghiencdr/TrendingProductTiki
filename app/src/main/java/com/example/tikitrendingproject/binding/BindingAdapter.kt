@@ -3,6 +3,7 @@ package com.example.tikitrendingproject.binding
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.BindingAdapter
 import com.bumptech.glide.Glide
@@ -12,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.NumberFormat
+import java.util.*
 
 @BindingAdapter("loadImage")
 fun loadImage(imageView: ImageView, url: String){
@@ -20,6 +23,14 @@ fun loadImage(imageView: ImageView, url: String){
         .error(R.drawable.error_image)
         .placeholder(R.drawable.error_image)
         .into(imageView)
+}
+
+@BindingAdapter("formatCurrency")
+fun formatCurrency(textView: TextView, value: Int){
+    val format = NumberFormat.getCurrencyInstance()
+    format.maximumFractionDigits = 0
+    format.currency = Currency.getInstance("VND")
+    textView.text = format.format(value)
 }
 
 //@BindingAdapter("loadBackground")
