@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity
 data class QuantitySold(
     @PrimaryKey
-    var productId: Int,
+    var productSku: String,
     var text: String,
     var value: Int
 )

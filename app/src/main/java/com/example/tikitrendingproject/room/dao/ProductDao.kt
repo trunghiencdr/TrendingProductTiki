@@ -16,7 +16,7 @@ interface ProductDao {
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(products: ArrayList<Product>?): List<Long>
+    suspend fun insert(products: List<Product>?): List<Long>
 
     @Update
     suspend fun update(product: Product): Int

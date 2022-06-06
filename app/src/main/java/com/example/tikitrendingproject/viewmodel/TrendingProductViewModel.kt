@@ -25,10 +25,14 @@ import com.example.tikitrendingproject.room.MyRoomDatabase
 import com.example.tikitrendingproject.room.dao.ImageDao
 import com.example.tikitrendingproject.room.repository.MetaDataRepository
 import com.example.tikitrendingproject.room.repository.TopTrendingRepository
+import com.example.tikitrendingproject.util.isNetworkAvailable
+import com.example.tikitrendingproject.util.onSNACK
 import com.example.tikitrendingproject.view.Action
 import com.example.tikitrendingproject.view.ProductCategoryAdapter
 import com.example.tikitrendingproject.view.TrendingProductAdapter
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
+import java.util.stream.Collectors
 
 class TrendingProductViewModel constructor(
     private val trendingProductRepository: TrendingProductRepository,
@@ -44,8 +48,8 @@ class TrendingProductViewModel constructor(
 
 
     var _urlBackground= MutableLiveData<String?>()
-    var _trendingProduct = MutableLiveData<ArrayList<Product>?>()
-    var _trendingProductCategory = MutableLiveData<ArrayList<ProductCategory>?>()
+    var _trendingProduct = MutableLiveData<List<Product>?>()
+    var _trendingProductCategory = MutableLiveData<List<ProductCategory>?>()
     var errorMessage = MutableLiveData<String>()
     var loading = MutableLiveData<Boolean>()
     var job: Job? = null
@@ -61,6 +65,9 @@ class TrendingProductViewModel constructor(
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         Log.d(TAG, "call fun onStart")
+        if(isNetworkAvailable(context)){
+
+        }
 
     }
 
@@ -128,27 +135,29 @@ class TrendingProductViewModel constructor(
         }
     }
 
-    private suspend fun saveProductIntoLocal(cateId: Int, products: ArrayList<Product>?) {
+    private suspend fun saveProductIntoLocal(cateId: Int, products: List<Product>?) {
         products?.forEach {
             it.apply {
-                quantitySold?.productId = id
+                quantitySold?.productSku = productSku
+            }
+            CoroutineScope(Dispatchers.IO).launch {
+                var kq = topTrendingRepository.insertProduct(it)
+                withContext(Dispatchers.IO){
+                    Log.d("insert product", "$kq ")
+                    topTrendingRepository.insertQuantitySold(it.quantitySold)
+                    topTrendingRepository.insertProductCategoryCrossRef(ProductCategoryCrossRef(it.productSku, cateId))
+                }
             }
 
-            topTrendingRepository.apply {
-                var kq = insertProduct(it)
-                Log.d("insert product", "$kq ")
-                insertQuantitySold(it.quantitySold)
-                insertProductCategoryCrossRef(ProductCategoryCrossRef(it.id, cateId))
-            }
         }
 
 
     }
 
-    fun setDataForCategory(it: ArrayList<ProductCategory>?) {
+    fun setDataForCategory(it: List<ProductCategory>?) {
         productCategoryAdapter.submitList(it)
     }
-    fun setDataForProduct(it: ArrayList<Product>?) {
+    fun setDataForProduct(it: List<Product>?) {
         productAdapter.submitList(it)
     }
 
@@ -174,7 +183,49 @@ class TrendingProductViewModel constructor(
         productCategoryAdapter.oldView.setBackgroundResource(R.drawable.bg_normal_category)
         productCategoryAdapter.oldView = view
         view.setBackgroundResource(R.drawable.bg_choosed_category)
+        if(isNetworkAvailable(context))
         callTrendingProductByCategoryId(t.categoryId, 0, 20)
+        else{
+
+        }
+    }
+
+    fun callDataFromLocal(view: View) {
+        Snackbar.make(view, "Your are in offline", Snackbar.LENGTH_LONG).show()
+        CoroutineScope(Dispatchers.IO).launch{
+            var listMeta = topTrendingRepository.findMetaDataByType("top_trending")
+            var listCategory = topTrendingRepository.getAllProductCategory()
+
+            withContext(Dispatchers.Main){
+                if(listMeta.size>0){
+                    _urlBackground.postValue(listMeta[0].backgroundImage)
+                }
+                if(listCategory.size>0){
+                    launch {
+                        var listProduct = topTrendingRepository.getCategoryWithProducts()
+                        withContext(Dispatchers.Main){
+                            _trendingProduct.postValue(
+                                listProduct.filter {
+                                    it.category.categoryId==listCategory[0].category.categoryId
+                                }.get(0).products
+                            )
+                        }
+                    }
+                    var listCategoryConvert = listCategory.map {
+                        ProductCategory(it.category.title,
+                        it.category.categoryId,
+                        it.image.map{
+                            it.url
+                        })
+                    }
+
+                    _trendingProductCategory.postValue(listCategoryConvert)
+                }
+
+            }
+        }
+
+
     }
 
 }

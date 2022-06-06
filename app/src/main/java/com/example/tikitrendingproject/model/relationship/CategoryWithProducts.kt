@@ -11,7 +11,7 @@ data class CategoryWithProducts (
     @Embedded var category: ProductCategory,
     @Relation(
         parentColumn = "categoryId",
-        entityColumn = "id",
+        entityColumn = "productSku",
         associateBy = Junction(ProductCategoryCrossRef::class)
     )
     var products: List<Product>

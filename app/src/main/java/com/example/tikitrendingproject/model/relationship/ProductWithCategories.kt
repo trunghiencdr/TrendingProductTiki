@@ -11,7 +11,7 @@ import com.example.tikitrendingproject.model.ProductCategoryCrossRef
 data class ProductWithCategories (
     @Embedded var product: Product,
     @Relation(
-        parentColumn = "id",
+        parentColumn = "productSku",
         entityColumn = "categoryId",
         associateBy = Junction(ProductCategoryCrossRef::class)
     )

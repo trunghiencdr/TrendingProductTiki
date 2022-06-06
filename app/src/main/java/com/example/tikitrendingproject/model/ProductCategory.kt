@@ -14,7 +14,7 @@ data class ProductCategory(
     var categoryId: Int,
     @SerializedName("images")
     @Ignore
-    var images: ArrayList<String>?,
+    var images: List<String>?,
 
     // using for room
 ){

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Transaction
 import com.example.tikitrendingproject.model.*
 import com.example.tikitrendingproject.model.relationship.CategoryWithImages
+import com.example.tikitrendingproject.model.relationship.CategoryWithProducts
 import com.example.tikitrendingproject.room.DatabaseBuilder
 import com.example.tikitrendingproject.room.dao.*
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +33,7 @@ class TopTrendingRepository(private val context: Context) {
         return metaDataDao.insert(item)
     }
 
-    fun findMetaDataByType(type: String): Flow<List<MetaData>> {
+    suspend fun findMetaDataByType(type: String): List<MetaData> {
         return metaDataDao.findMetaDataByTitle(type)
     }
 
@@ -49,11 +50,11 @@ class TopTrendingRepository(private val context: Context) {
         else return 0
     }
 
-    fun getAllProductCategory(): Flow<List<CategoryWithImages>> {
+    suspend fun getAllProductCategory(): List<CategoryWithImages> {
         return categoryDao.getAll()
     }
 
-    suspend fun insertProducts(items: ArrayList<Product>?): List<Long> {
+    suspend fun insertProducts(items: List<Product>?): List<Long> {
         return productDao.insert(items)
     }
 
@@ -68,6 +69,12 @@ class TopTrendingRepository(private val context: Context) {
     suspend fun insertProductCategoryCrossRef(item: ProductCategoryCrossRef): Long {
         return productCategoryCrossRefDao.insert(item)
     }
+
+    suspend fun getCategoryWithProducts(): List<CategoryWithProducts> {
+        return productCategoryCrossRefDao.getCategoryWithProducts()
+    }
+
+
 
 
 }

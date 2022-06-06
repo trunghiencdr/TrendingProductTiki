@@ -3,9 +3,9 @@ package com.example.tikitrendingproject.model
 import androidx.room.Entity
 
 @Entity(
-    primaryKeys = ["productId", "categoryId"]
+    primaryKeys = ["productSku", "categoryId"]
 )
 data class ProductCategoryCrossRef(
-    var productId: Int,
+    var productSku: String,
     var categoryId: Int
 )

@@ -30,7 +30,7 @@ ViewModel(){
 //            job.cancelAndJoin()
 //        }
     }
-    fun findMetaDataByType(type: String): LiveData<List<MetaData>>{
-        return metaDataRepository.findMetaDataByType(type).asLiveData()
+    suspend fun findMetaDataByType(type: String): List<MetaData>{
+        return metaDataRepository.findMetaDataByType(type)
     }
 }

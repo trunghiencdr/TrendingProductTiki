@@ -8,7 +8,7 @@ indices = [
     Index(value = ["name", "price"], unique = false)
 ])
 data class Product(
-    @PrimaryKey
+
     var id: Int,
     var name: String,
     @SerializedName("original_price")
@@ -23,6 +23,9 @@ data class Product(
     var shortDescription: String,
     @SerializedName("thumbnail_url")
     var thumbnailUrl: String,
+    @PrimaryKey
+    @SerializedName("sku")
+    var productSku: String
 )
  {
     constructor(
@@ -32,7 +35,8 @@ data class Product(
         price: Int,
         ratingAverage: Float,
         shortDescription: String,
-        thumbnailUrl: String
+        thumbnailUrl: String,
+        productSku: String
     ) :
             this(
                 id,
@@ -42,6 +46,7 @@ data class Product(
                 null,
                 ratingAverage,
                 shortDescription,
-                thumbnailUrl
+                thumbnailUrl,
+                productSku
             )
 }

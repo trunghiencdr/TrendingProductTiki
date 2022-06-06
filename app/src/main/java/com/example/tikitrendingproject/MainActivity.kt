@@ -13,6 +13,7 @@ import com.example.tikitrendingproject.retrofit.repository.TrendingProductReposi
 import com.example.tikitrendingproject.retrofit.service.TrendingProductService
 import com.example.tikitrendingproject.util.ItemMargin
 import com.example.tikitrendingproject.util.SpacesItemDecoration
+import com.example.tikitrendingproject.util.isNetworkAvailable
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModel
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModelFactory
 
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var viewModel: TrendingProductViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         viewModel = getViewModelCall()
         lifecycle.addObserver(viewModel)
         setUpBinding()
@@ -30,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
 
      fun setUpBinding() {
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
         binding.setVariable(BR.viewModel, viewModel)
         binding.executePendingBindings()
         binding.rvProductCategory.adapter = viewModel.productCategoryAdapter
@@ -55,7 +57,12 @@ class MainActivity : AppCompatActivity() {
          viewModel.trendingProduct.observe(this, Observer {
              viewModel.setDataForProduct(it)
          })
-         viewModel.callProductCategory(0,20)
+
+         if(isNetworkAvailable(this)){
+             viewModel.callProductCategory(0,20)
+         }else{
+             viewModel.callDataFromLocal(binding.root)
+         }
 
         return viewModel
 

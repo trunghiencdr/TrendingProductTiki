@@ -19,5 +19,5 @@ interface MetaDataDao {
     suspend fun insert(metaData: MetaData?): Long
 
     @Query("SELECT * FROM MetaData where type = :type")
-    fun findMetaDataByTitle(type: String): Flow<List<MetaData>>
+    suspend fun findMetaDataByTitle(type: String): List<MetaData>
 }

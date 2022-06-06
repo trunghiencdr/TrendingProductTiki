@@ -8,8 +8,8 @@ import com.example.tikitrendingproject.model.QuantitySold
 data class ProductWithQuantitySold(
     @Embedded var product: Product,
     @Relation(
-            parentColumn = "id",
-            entityColumn = "productId"
+            parentColumn = "productSku",
+            entityColumn = "productSku"
     )
     var quantitySold: QuantitySold
 )

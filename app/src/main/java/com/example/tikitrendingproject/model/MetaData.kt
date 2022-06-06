@@ -16,7 +16,7 @@ data class MetaData(
     @SerializedName("background_image")
     var backgroundImage: String,
     @Ignore
-    var items: ArrayList<ProductCategory>?
+    var items: List<ProductCategory>?
 ){
     constructor(
         type: String,

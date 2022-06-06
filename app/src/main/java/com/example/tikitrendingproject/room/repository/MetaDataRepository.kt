@@ -12,7 +12,7 @@ class MetaDataRepository constructor(private val dao: MetaDataDao){
         return dao.insert(item)
     }
 
-     fun findMetaDataByType(type: String): Flow<List<MetaData>>{
+     suspend fun findMetaDataByType(type: String): List<MetaData>{
         return dao.findMetaDataByTitle(type)
     }
 }
