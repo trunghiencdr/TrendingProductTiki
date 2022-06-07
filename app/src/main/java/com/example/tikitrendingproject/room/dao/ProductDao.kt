@@ -24,5 +24,8 @@ interface ProductDao {
     @Delete
     suspend fun delete(product: Product): Int
 
+    @Query("SELECT * FROM Product where productSku= :sku")
+    suspend fun findBySku(sku: String): Product
+
 
 }

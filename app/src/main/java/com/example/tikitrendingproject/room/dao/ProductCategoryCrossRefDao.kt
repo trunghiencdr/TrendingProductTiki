@@ -13,4 +13,8 @@ interface ProductCategoryCrossRefDao {
     @Query("SELECT * FROM ProductCategory")
     suspend fun getCategoryWithProducts(): List<CategoryWithProducts>
 
+
+    @Query("SELECT * FROM ProductCategoryCrossRef where categoryId = :id")
+    suspend fun findByCategoryId(id: Int): List<ProductCategoryCrossRef>
+
 }

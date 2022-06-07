@@ -13,10 +13,7 @@ import androidx.room.Database
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestListener
 import com.example.tikitrendingproject.R
-import com.example.tikitrendingproject.model.MetaData
-import com.example.tikitrendingproject.model.Product
-import com.example.tikitrendingproject.model.ProductCategory
-import com.example.tikitrendingproject.model.ProductCategoryCrossRef
+import com.example.tikitrendingproject.model.*
 import com.example.tikitrendingproject.retrofit.RetroInstance
 import com.example.tikitrendingproject.retrofit.repository.TrendingProductRepository
 import com.example.tikitrendingproject.retrofit.service.TrendingProductService
@@ -32,6 +29,7 @@ import com.example.tikitrendingproject.view.ProductCategoryAdapter
 import com.example.tikitrendingproject.view.TrendingProductAdapter
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
+import java.util.concurrent.CountDownLatch
 import java.util.stream.Collectors
 
 class TrendingProductViewModel constructor(
@@ -184,48 +182,76 @@ class TrendingProductViewModel constructor(
         productCategoryAdapter.oldView = view
         view.setBackgroundResource(R.drawable.bg_choosed_category)
         if(isNetworkAvailable(context))
-        callTrendingProductByCategoryId(t.categoryId, 0, 20)
+            callTrendingProductByCategoryId(t.categoryId, 0, 20)
         else{
-
+            callProductsByCategory(t.categoryId)
         }
     }
 
     fun callDataFromLocal(view: View) {
         Snackbar.make(view, "Your are in offline", Snackbar.LENGTH_LONG).show()
-        CoroutineScope(Dispatchers.IO).launch{
-            var listMeta = topTrendingRepository.findMetaDataByType("top_trending")
-            var listCategory = topTrendingRepository.getAllProductCategory()
+        callBackground()
+        callListCategory()
 
+
+    }
+
+    fun callBackground(){
+        CoroutineScope(Dispatchers.IO).launch {
+            var listMeta = topTrendingRepository.findMetaDataByType("top_trending")
             withContext(Dispatchers.Main){
                 if(listMeta.size>0){
                     _urlBackground.postValue(listMeta[0].backgroundImage)
+                }else{
+                    _urlBackground.postValue("")
                 }
-                if(listCategory.size>0){
-                    launch {
-                        var listProduct = topTrendingRepository.getCategoryWithProducts()
-                        withContext(Dispatchers.Main){
-                            _trendingProduct.postValue(
-                                listProduct.filter {
-                                    it.category.categoryId==listCategory[0].category.categoryId
-                                }.get(0).products
-                            )
-                        }
-                    }
-                    var listCategoryConvert = listCategory.map {
-                        ProductCategory(it.category.title,
-                        it.category.categoryId,
-                        it.image.map{
-                            it.url
-                        })
-                    }
-
-                    _trendingProductCategory.postValue(listCategoryConvert)
-                }
-
             }
         }
+    }
 
+    fun callListCategory(){
+        CoroutineScope(Dispatchers.IO).launch {
+            var listCategory = topTrendingRepository.getAllProductCategory()
+            withContext(Dispatchers.Main){
+                if(listCategory.size>0){
+                    callProductsByCategory(listCategory.get(0).category.categoryId)
+                    _trendingProductCategory.postValue(
+                        listCategory.map {
+                            ProductCategory(it.category.title, it.category.categoryId,
+                            it.image.map {
+                                it.url
+                            })
+                        }
+                    )
+                }else{
 
+                    _trendingProductCategory.postValue(null)
+                }
+            }
+        }
+    }
+
+     fun callProductsByCategory(id: Int){
+        var listProducts:MutableList<Product> = ArrayList()
+        CoroutineScope(Dispatchers.IO).launch {
+            var listCategoryWithProducts = topTrendingRepository.findByCategoryId(id)
+            withContext(Dispatchers.Main){
+                if(listCategoryWithProducts.size>0){
+                    listCategoryWithProducts.forEach {
+                        var product = topTrendingRepository.findProductsBySku(it.productSku)
+                        var quantitySold = topTrendingRepository.findQuantitySoldByProductSku(it.productSku)
+                        product.quantitySold = quantitySold
+                        listProducts.add(product)
+                    }
+                }
+
+                if(listProducts.size>0){
+                    _trendingProduct.postValue(listProducts)
+                }else{
+                    _trendingProduct.postValue(null)
+                }
+            }
+        }
     }
 
 }

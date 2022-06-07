@@ -7,7 +7,11 @@ import com.example.tikitrendingproject.model.relationship.CategoryWithImages
 import com.example.tikitrendingproject.model.relationship.CategoryWithProducts
 import com.example.tikitrendingproject.room.DatabaseBuilder
 import com.example.tikitrendingproject.room.dao.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TopTrendingRepository(private val context: Context) {
     private lateinit var metaDataDao: MetaDataDao
@@ -72,6 +76,21 @@ class TopTrendingRepository(private val context: Context) {
 
     suspend fun getCategoryWithProducts(): List<CategoryWithProducts> {
         return productCategoryCrossRefDao.getCategoryWithProducts()
+    }
+
+    suspend fun findByCategoryId(id: Int): List<ProductCategoryCrossRef> {
+        return productCategoryCrossRefDao.findByCategoryId(id)
+    }
+
+
+
+
+    suspend fun findProductsBySku(sku: String): Product {
+        return productDao.findBySku(sku)
+    }
+
+    suspend fun findQuantitySoldByProductSku(sku: String): QuantitySold {
+        return quantitySoldDao.findByProductSku(sku)
     }
 
 
