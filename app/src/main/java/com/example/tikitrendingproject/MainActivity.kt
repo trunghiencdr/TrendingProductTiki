@@ -19,6 +19,9 @@ import com.example.tikitrendingproject.util.SpacesItemDecoration
 import com.example.tikitrendingproject.util.isNetworkAvailable
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModel
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModelFactory
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -26,6 +29,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+
+
         viewModel = getViewModelCall()
         lifecycle.addObserver(viewModel)
         setUpBinding()
