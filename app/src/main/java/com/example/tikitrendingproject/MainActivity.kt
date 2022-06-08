@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        testCoroutine()
 
 
 
@@ -38,9 +39,16 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun testCoroutine() {
+        testCoroutineScope()
+    }
+
+    private fun testCoroutineScope() {
+
+    }
 
 
-     fun setUpBinding() {
+    fun setUpBinding() {
 
         binding.setVariable(BR.viewModel, viewModel)
         binding.executePendingBindings()
