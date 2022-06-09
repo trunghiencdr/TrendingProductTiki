@@ -8,6 +8,7 @@ import androidx.lifecycle.*
 import com.bumptech.glide.Glide
 import com.example.tikitrendingproject.R
 import com.example.tikitrendingproject.model.*
+import com.example.tikitrendingproject.retrofit.BaseResponse
 import com.example.tikitrendingproject.retrofit.repository.TrendingProductRepository
 import com.example.tikitrendingproject.room.repository.TopTrendingRepository
 import com.example.tikitrendingproject.util.isNetworkAvailable
@@ -22,15 +23,13 @@ import kotlin.coroutines.suspendCoroutine
 
 class TrendingProductViewModel constructor(
     private val trendingProductRepository: TrendingProductRepository,
-    private val context: Context
-) :
-    ViewModel(), DefaultLifecycleObserver, Action<ProductCategory> {
+    private val context: Context): ViewModel(), DefaultLifecycleObserver, Action<ProductCategory> {
 
     companion object {
         val TAG = TrendingProductViewModel::class.java.name
     }
 
-    private  val topTrendingRepository = TopTrendingRepository(context)
+    private val topTrendingRepository = TopTrendingRepository(context)
 
 
     private val _urlBackground = MutableLiveData<String?>()
@@ -44,21 +43,19 @@ class TrendingProductViewModel constructor(
     }
 
     // set up adapter
-    private val productCategoryAdapter = ProductCategoryAdapter(this)
-    private val productAdapter = TrendingProductAdapter()
+    val productCategoryAdapter = ProductCategoryAdapter(this)
+    val productAdapter = TrendingProductAdapter()
 
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         Log.d(TAG, "call fun onStart")
-        if (isNetworkAvailable(context)) {
-
-        }
-
+        if (isNetworkAvailable(context)) { }
     }
 
     private fun onError(message: String) {
         errorMessage.postValue(message)
+        Log.d("HIEN", message)
         loading.postValue(false)
 
     }
@@ -71,44 +68,24 @@ class TrendingProductViewModel constructor(
     val urlBackground get() = _urlBackground
 
 
-    fun callProductCategory(cursor: Int, limit: Int) {
-//        loading.postValue(true)
-        CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
-            val response = trendingProductRepository.getTrendingProduct(cursor, limit)
-            if (response?.isSuccessful == true) {
-                when (response.body()?.status) {
-                    200 -> {
-                        response.body()?.data?.metaData?.let {
-                            _urlBackground.postValue(it.backgroundImage)
-                            _trendingProductCategory.postValue(it.items)
-                            // get list product from category index 0
-                            launch {
-                                if (it.items?.size!! > 0) {
-                                    callTrendingProductByCategoryId(
-                                        it.items?.get(0)!!.categoryId,
-                                        0,
-                                        20
-                                    )
-                                }
-                            }
-                            // save data to room database
-                            saveDataToSql(it)
-                        }
-                    }
-                    else -> {
-                        onError("error api: ${response.body()?.status}")
+    fun loadData(cursor: Int, limit: Int) {
+        viewModelScope.launch {
+            loading.value = true
+            withContext(Dispatchers.IO + exceptionHandler) {
+                val result = getTrendingProductCategory(cursor, limit)
+                BaseResponse.process(result) { data ->
+                    data?.let {
+                        _trendingProductCategory.postValue(data.metaData.items)
+                        _urlBackground.postValue(data.metaData.backgroundImage)
+                        callProductsByCategory(data.metaData.items?.get(0)!!.categoryId) // call list product with first category
                     }
                 }
-//                loading.value = false
-            } else {
-                _trendingProductCategory.postValue(null)
-                _urlBackground.postValue(null)
-                //handle error when call api using retrofit with coroutines
-                // it is automatically with coroutineExceptionHandler
-                onError("Error coroutine ${response?.errorBody()?.string()}")
             }
-            // how to handle cancel job? Is it necessary?
         }
+    }
+
+    private suspend fun getTrendingProductCategory(cursor: Int, limit: Int): Response<ResponseObject<Data>> {
+        return trendingProductRepository.getTrendingProduct(cursor, limit)
     }
 
     private fun saveDataToSql(metaData: MetaData) {
@@ -127,61 +104,55 @@ class TrendingProductViewModel constructor(
     }
 
 
-    fun callTrendingProductByCategoryId(categoryId: Int, cursor: Int, limit: Int) {
+    private fun callTrendingProductByCategoryId(categoryId: Int, cursor: Int, limit: Int) {
         loading.postValue(true)
-        CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
-            val response =
-                trendingProductRepository.getTrendingProductByCategoryId(
-                    categoryId,
-                    cursor,
-                    limit
-                )
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    when (it.status) {
-                        200 -> {
-                            it.also {
-                                _trendingProduct.postValue(it.data.data)
-                                saveProductIntoLocal(categoryId, it.data.data)
-                            }
-                        }
-                        else -> {
-                            onError("Status when call list product by category: ${it.status}")
-                        }
+        viewModelScope.launch {
+            withContext(Dispatchers.IO + exceptionHandler) {
+                val result = getProductsByCategory(categoryId, cursor, limit)
+                BaseResponse.process(result) { data ->
+                    data?.let {
+                        _trendingProduct.postValue(data.data)
+                        saveProductIntoLocal(categoryId, data.data)
                     }
                 }
-            } else {
-                _trendingProduct.postValue(null)
-                onError("Error: ${response.message()}")
             }
         }
     }
 
-    private suspend fun saveProductIntoLocal(cateId: Int, products: List<Product>?) {
-        products?.forEach { product ->
-            // insert product into room
-            var kq = topTrendingRepository.insertProduct(product)
+    private suspend fun getProductsByCategory(categoryId: Int, cursor: Int, limit: Int): Response<ResponseObject<Data>> {
+        return trendingProductRepository.getTrendingProductByCategoryId(categoryId, cursor, limit)
+    }
 
-            // if insert product success then insert quantity sold and product with category
-            // insert quantitySold of product
-            if (kq > 0) {
-                product.apply {
-                    quantitySold?.productSku = productSku
-                }
-                CoroutineScope(Dispatchers.IO).launch {
-                    topTrendingRepository.insertQuantitySold(product.quantitySold)
-                    // insert product with category
-                    launch {
-                        topTrendingRepository.insertProductCategoryCrossRef(
-                            ProductCategoryCrossRef(
-                                product.productSku,
-                                cateId
-                            )
-                        )
+    private fun saveProductIntoLocal(cateId: Int, products: List<Product>?) {
+        GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                products?.forEach { product ->
+                    // insert product into room
+                    var kq = topTrendingRepository.insertProduct(product)
+
+                    // if insert product success then insert quantity sold and product with category
+                    // insert quantitySold of product
+                    if (kq > 0) {
+                        product.apply {
+                            quantitySold?.productSku = productSku
+                        }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            topTrendingRepository.insertQuantitySold(product.quantitySold)
+                            // insert product with category
+                            launch {
+                                topTrendingRepository.insertProductCategoryCrossRef(
+                                    ProductCategoryCrossRef(
+                                        product.productSku,
+                                        cateId
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
+
     }
 
     fun setDataForCategory(it: List<ProductCategory>?) {
@@ -260,23 +231,6 @@ class TrendingProductViewModel constructor(
             }
             job.cancelAndJoin()
         }
-//        CoroutineScope(Dispatchers.IO).launch {
-//            var listCategory = topTrendingRepository.getAllProductCategory()
-//            if (listCategory.size > 0) {
-//                callProductsByCategory(listCategory.get(0).category.categoryId)
-//                _trendingProductCategory.postValue(
-//                    listCategory.map {
-//                        ProductCategory(it.category.title, it.category.categoryId,
-//                            it.image.map {
-//                                it.url
-//                            })
-//                    }
-//                )
-//            } else {
-//                _trendingProductCategory.postValue(null)
-//            }
-//        }
-
     }
 
 

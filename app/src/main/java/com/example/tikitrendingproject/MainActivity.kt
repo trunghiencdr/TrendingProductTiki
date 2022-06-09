@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
 
      fun getViewModelCall(): TrendingProductViewModel {
-        val trendingProductRepository = TrendingProductRepository(RetroInstance.trendingProductService)
+        val trendingProductRepository = TrendingProductRepository(RetroInstance.getService<TrendingProductService>(this))
         val viewModelFactory = TrendingProductViewModelFactory(trendingProductRepository, this)
         viewModel = ViewModelProvider(this, viewModelFactory).get(TrendingProductViewModel::class.java)
         viewModel.trendingProductCategory.observe(this, Observer {
@@ -75,11 +75,12 @@ class MainActivity : AppCompatActivity() {
              viewModel.setDataForProduct(it)
          })
 
-         if(isNetworkAvailable(this)){
-             viewModel.callProductCategory(0,20)
-         }else{
-             viewModel.callDataFromLocal(binding.root)
-         }
+         viewModel.loadData(0,20)
+//         if(isNetworkAvailable(this)){
+//             viewModel.loadData(0,20)
+//         }else{
+//             viewModel.callDataFromLocal(binding.root)
+//         }
 
         return viewModel
 

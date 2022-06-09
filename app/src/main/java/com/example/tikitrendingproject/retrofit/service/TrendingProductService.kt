@@ -9,7 +9,7 @@ import retrofit2.http.Query
 
 interface TrendingProductService {
 
-    @GET("shopping-trend/api/trendings/hu?")
+    @GET("shopping-trend/api/trendings/hub?")
     suspend fun getTrendingProduct(
                             @Query("cursor") cursor:Int,
                             @Query("limit") limit:Int): Response<ResponseObject<Data>>
