@@ -23,7 +23,8 @@ import kotlin.coroutines.suspendCoroutine
 
 class TrendingProductViewModel constructor(
     private val trendingProductRepository: TrendingProductRepository,
-    private val context: Context): ViewModel(), DefaultLifecycleObserver, Action<ProductCategory> {
+    private val context: Context
+) : ViewModel(), DefaultLifecycleObserver, Action<ProductCategory> {
 
     companion object {
         val TAG = TrendingProductViewModel::class.java.name
@@ -50,7 +51,8 @@ class TrendingProductViewModel constructor(
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         Log.d(TAG, "call fun onStart")
-        if (isNetworkAvailable(context)) { }
+        if (isNetworkAvailable(context)) {
+        }
     }
 
     private fun onError(message: String) {
@@ -77,6 +79,8 @@ class TrendingProductViewModel constructor(
                     data?.let {
                         _trendingProductCategory.postValue(data.metaData.items)
                         _urlBackground.postValue(data.metaData.backgroundImage)
+                        // save to database local
+                        saveDataToSql(metaData = data.metaData)
                         callProductsByCategory(data.metaData.items?.get(0)!!.categoryId) // call list product with first category
                     }
                 }
@@ -84,20 +88,26 @@ class TrendingProductViewModel constructor(
         }
     }
 
-    private suspend fun getTrendingProductCategory(cursor: Int, limit: Int): Response<ResponseObject<Data>> {
+    private suspend fun getTrendingProductCategory(
+        cursor: Int,
+        limit: Int
+    ): Response<ResponseObject<Data>> {
         return trendingProductRepository.getTrendingProduct(cursor, limit)
     }
 
     private fun saveDataToSql(metaData: MetaData) {
-        CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
-            if (topTrendingRepository.insertMetaData(metaData) <= 0) {
-                // handle error when insert into room db
-                errorMessage.postValue("Error insertMetadata")
-            }
-            // can optimize with flow?
-            // Does it run linear or parallel ?
-            metaData.items?.forEach { it ->
-                topTrendingRepository.insertProductCategory(it)
+        GlobalScope.launch {
+            withContext(Dispatchers.IO + exceptionHandler) {
+                try {
+                    topTrendingRepository.insertMetaData(metaData)
+                } catch (e: Exception) {
+                    Log.d("HIEN", e.localizedMessage)
+                }
+                // can optimize with flow?
+                // Does it run linear or parallel ?
+                metaData.items?.forEach { it ->
+                    topTrendingRepository.insertProductCategory(it)
+                }
             }
         }
 
@@ -129,7 +139,6 @@ class TrendingProductViewModel constructor(
                 products?.forEach { product ->
                     // insert product into room
                     var kq = topTrendingRepository.insertProduct(product)
-
                     // if insert product success then insert quantity sold and product with category
                     // insert quantitySold of product
                     if (kq > 0) {
