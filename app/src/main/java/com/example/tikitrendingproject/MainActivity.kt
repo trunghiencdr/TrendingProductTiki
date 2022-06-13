@@ -72,6 +72,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.callDataFromLocal(binding.root)
         }
 
+        viewModel.getLoading().observe(this, Observer {
+            if (it) {
+                binding.progressBar.visibility = android.view.View.VISIBLE
+            } else {
+                binding.progressBar.visibility = android.view.View.GONE
+            }
+        })
+
         return viewModel
 
     }

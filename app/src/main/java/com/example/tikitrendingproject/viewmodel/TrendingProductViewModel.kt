@@ -48,7 +48,7 @@ class TrendingProductViewModel constructor(
     private val _trendingProduct = MutableLiveData<List<Product>?>()
     private val _trendingProductCategory = MutableLiveData<List<ProductCategory>?>()
     private val errorMessage = MutableLiveData<String>()
-    private val loading = MutableLiveData<Boolean>()
+    private var loading = MutableLiveData<Boolean>()
     private val job: Job? = null
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError(message = "ExceptionHandler: ${throwable.localizedMessage}")
@@ -65,6 +65,10 @@ class TrendingProductViewModel constructor(
         get() = _trendingProductCategory
     val urlBackground get() = _urlBackground
 
+    fun getLoading() = loading
+    fun setLoading(value: Boolean) {
+        loading.postValue(value)
+    }
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
@@ -268,6 +272,7 @@ class TrendingProductViewModel constructor(
     fun observerSearchView(searchView: SearchView) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+
                 searchView.getQueryTextChangeStateFlow()
                     .debounce(300)
                     .filter { query ->
@@ -283,6 +288,7 @@ class TrendingProductViewModel constructor(
                             return@filter false
                         } else {
                             // submit list with products that match query
+                            //add loading
                             return@filter true
                         }
                     }
@@ -296,6 +302,7 @@ class TrendingProductViewModel constructor(
                     .flowOn(Dispatchers.IO)
                     .collect {
                         products -> _trendingProduct.postValue(products)
+                        loading.postValue(false)
                     }
                         // search for products that match query
 
@@ -332,6 +339,7 @@ class TrendingProductViewModel constructor(
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText != null) {
+                    loading.value=true
                     searchQuery.value = newText
                 }
                 return true

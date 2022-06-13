@@ -3,12 +3,14 @@ package com.example.tikitrendingproject.binding
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.BindingAdapter
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.BitmapDrawableResource
 import com.example.tikitrendingproject.R
+import com.example.tikitrendingproject.util.writeLogDebug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,3 +49,12 @@ fun formatCurrency(textView: TextView, value: Int){
 //        }
 //    }
 //}
+
+@BindingAdapter("isVisible")
+fun isVisible(progressBar: ProgressBar, isVisible: Boolean){
+    progressBar.visibility = if (isVisible) {
+        ProgressBar.VISIBLE
+    } else {
+        ProgressBar.INVISIBLE
+    }
+}
