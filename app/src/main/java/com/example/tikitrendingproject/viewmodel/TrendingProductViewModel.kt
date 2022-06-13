@@ -75,8 +75,10 @@ class TrendingProductViewModel constructor(
                 val result = getTrendingProductCategory(cursor, limit)
                 BaseResponse.process(result) { data ->
                     data?.let {
-                        _trendingProductCategory.postValue(data.metaData.items)
+                        with(_trendingProductCategory) { postValue(data.metaData.items) }
                         _urlBackground.postValue(data.metaData.backgroundImage)
+                        //save data to local
+                        saveDataToSql(data.metaData)
                         callProductsByCategory(data.metaData.items?.get(0)!!.categoryId) // call list product with first category
                     }
                 }
