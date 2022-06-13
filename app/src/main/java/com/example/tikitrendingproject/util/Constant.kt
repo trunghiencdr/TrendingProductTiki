@@ -7,5 +7,7 @@ class Constant {
         const val TABLE_CATEGORY = "ProductCategory"
         const val TABLE_PRODUCT_IMAGE = "ProductWithImage"
         const val TABLE_QUANTITY_SOLD = "QuantitySold"
+        const val VISIBLE_LOG = true
+        const val TAG_DEBUG = "HIEN"
     }
 }

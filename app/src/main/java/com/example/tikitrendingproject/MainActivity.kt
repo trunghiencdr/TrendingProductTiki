@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
+import androidx.databinding.adapters.SearchViewBindingAdapter.setOnQueryTextListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -21,66 +23,54 @@ import com.example.tikitrendingproject.viewmodel.TrendingProductViewModel
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModelFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
-    lateinit var viewModel: TrendingProductViewModel
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: TrendingProductViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        testCoroutine()
-
-
-
         viewModel = getViewModelCall()
         lifecycle.addObserver(viewModel)
         setUpBinding()
 
     }
 
-    private fun testCoroutine() {
-        testCoroutineScope()
-    }
-
-    private fun testCoroutineScope() {
-
-    }
-
-
     fun setUpBinding() {
 
         binding.setVariable(BR.viewModel, viewModel)
         binding.executePendingBindings()
         binding.rvProductCategory.adapter = viewModel.productCategoryAdapter
-         binding.rvProduct.adapter = viewModel.productAdapter
-         binding.rvProductCategory.addItemDecoration(ItemMargin(0, 0, 10, 0 ))
-         binding.rvProduct.addItemDecoration(SpacesItemDecoration(10))
+        binding.rvProduct.adapter = viewModel.productAdapter
+        binding.rvProductCategory.addItemDecoration(ItemMargin(0, 0, 10, 0))
+        binding.rvProduct.addItemDecoration(SpacesItemDecoration(10))
+        viewModel.observerSearchView(binding.searchView)
+
     }
 
 
-     fun getViewModelCall(): TrendingProductViewModel {
-        val trendingProductRepository = TrendingProductRepository(RetroInstance.getService<TrendingProductService>(this))
+
+
+    fun getViewModelCall(): TrendingProductViewModel {
+        val trendingProductRepository =
+            TrendingProductRepository(RetroInstance.getService<TrendingProductService>(this))
         val viewModelFactory = TrendingProductViewModelFactory(trendingProductRepository, this)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(TrendingProductViewModel::class.java)
+        viewModel =
+            ViewModelProvider(this, viewModelFactory).get(TrendingProductViewModel::class.java)
         viewModel.trendingProductCategory.observe(this, Observer {
             viewModel.setDataForCategory(it)
         })
-
-         viewModel.urlBackground.observe(this, Observer {
-             viewModel.setImageBackground(binding.imageViewBackground, it)
-         })
-
-         viewModel.trendingProduct.observe(this, Observer {
-             viewModel.setDataForProduct(it)
-         })
-
-         viewModel.loadData(0,20)
-//         if(isNetworkAvailable(this)){
-//             viewModel.loadData(0,20)
-//         }else{
-//             viewModel.callDataFromLocal(binding.root)
-//         }
+        viewModel.trendingProduct.observe(this, Observer {
+            viewModel.setDataForProduct(it)
+        })
+        if (isNetworkAvailable(this)) {
+            viewModel.loadData(0, 20)
+        } else {
+            viewModel.callDataFromLocal(binding.root)
+        }
 
         return viewModel
 

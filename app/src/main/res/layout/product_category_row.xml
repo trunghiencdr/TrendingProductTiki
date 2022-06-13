@@ -12,38 +12,46 @@
             type="com.example.tikitrendingproject.view.Action&lt;ProductCategory&gt;" />
     </data>
     <androidx.cardview.widget.CardView
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:elevation="2dp"
         app:cardCornerRadius="10dp">
-       <LinearLayout
-           android:id="@+id/linear_layout_category"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
+       <androidx.constraintlayout.widget.ConstraintLayout
+           android:id="@+id/constraint_layout_category"
+           android:layout_width="100dp"
+           android:layout_height="100dp"
            android:orientation="vertical"
            android:padding="5dp"
            android:onClick='@{(view)->action.onClickWithBackground(view, productCategory)}'>
            <ImageView
-               android:layout_width="80dp"
-               android:layout_height="80dp"
+               android:id="@+id/image_view_of_category"
+               android:layout_width="match_parent"
+               android:layout_height="0dp"
                android:layout_marginTop="5dp"
-               android:layout_marginStart="20dp"
-               android:layout_marginEnd="20dp"
-               loadImage='@{productCategory.images.size>0?productCategory.images.get(0):""}'>
+               loadImage='@{productCategory.images.size>0?productCategory.images.get(0):""}'
+               app:layout_constraintTop_toTopOf="parent"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintEnd_toEndOf="parent"
+               app:layout_constraintBottom_toTopOf="@id/text_view_title_of_category">
            </ImageView>
 
            <TextView
-               android:layout_width="match_parent"
+               android:id="@+id/text_view_title_of_category"
+               android:layout_width="wrap_content"
                android:layout_height="wrap_content"
                style="@style/TextH1"
                android:text='@{productCategory.title}'
                android:ellipsize="end"
                android:minLines="2"
                android:maxLines="2"
-               android:textAlignment="center">
+               android:textAlignment="center"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintEnd_toEndOf="parent"
+               app:layout_constraintTop_toBottomOf="@id/image_view_of_category"
+               app:layout_constraintBottom_toBottomOf="parent">
 
            </TextView>
-       </LinearLayout>
+       </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
 </layout>

@@ -78,3 +78,8 @@ fun onSNACK(view: View){
     textView.textSize = 28f
     snackbar.show()
 }
+
+fun writeLogDebug(message: String){
+    if(Constant.VISIBLE_LOG)
+    Log.d(Constant.TAG_DEBUG, message)
+}

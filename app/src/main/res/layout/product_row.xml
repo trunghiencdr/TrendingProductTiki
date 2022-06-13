@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="1dp"
         android:elevation="2dp"
-        app:cardCornerRadius="10dp">
+        app:cardCornerRadius="5dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -29,7 +29,7 @@
                 android:id="@+id/imageViewProduct"
                 loadImage='@{product.thumbnailUrl??""}'
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="120dp"
                 android:scaleType="centerCrop"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
@@ -62,6 +62,7 @@
                 android:numStars="5"
                 android:rating='@{product.ratingAverage}'
                 android:stepSize="0.1"
+                android:textAlignment="viewStart"
                 android:theme="@style/RatingBar"
                 app:layout_constraintBottom_toBottomOf="@id/txtSoldQuantity"
                 app:layout_constraintStart_toStartOf="@id/txtProductName"
@@ -78,8 +79,8 @@
                 android:layout_marginTop="5dp"
                 android:ellipsize="end"
                 android:gravity="center"
-                android:maxLines="2"
-                android:minLines="2"
+                android:maxLines="1"
+                android:minLines="1"
                 android:text='@{product.quantitySold.value>1000?product.quantitySold.text:"Đã bán " + product.quantitySold.value}'
                 android:textAlignment="textEnd"
                 app:layout_constraintEnd_toEndOf="@id/txtProductName"

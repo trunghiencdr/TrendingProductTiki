@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TikiTrendingProject</string>
+    <string name="search_hint_trending_product">Tìm sản phẩm theo tên và giá</string>
 </resources>

@@ -14,13 +14,16 @@ import com.example.tikitrendingproject.model.Product
 import com.example.tikitrendingproject.model.ProductCategory
 import java.util.concurrent.Executors
 
-class ProductCategoryAdapter(val action: Action<ProductCategory>):
-ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
-    AsyncDifferConfig.Builder<ProductCategory>(ProductCategoryDiffUtil())
-    .setBackgroundThreadExecutor(Executors.newSingleThreadExecutor())
-    .build()){
-    lateinit var oldView: View
-    class MyViewHolder(private val binding: ProductCategoryRowBinding) : RecyclerView.ViewHolder(binding.root) {
+class ProductCategoryAdapter(val action: Action<ProductCategory>) :
+    ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
+        AsyncDifferConfig.Builder<ProductCategory>(ProductCategoryDiffUtil())
+            .setBackgroundThreadExecutor(Executors.newSingleThreadExecutor())
+            .build()
+    ) {
+    public var oldView: View? = null
+
+    class MyViewHolder(private val binding: ProductCategoryRowBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(action: Action<ProductCategory>, item: ProductCategory?) {
             binding.productCategory = item
             binding.action = action
@@ -29,7 +32,7 @@ ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
 
     }
 
-    fun setChooseItem(itemIndex: Int){
+    fun setChooseItem(itemIndex: Int) {
 
     }
 
@@ -39,7 +42,7 @@ ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        if(position==0){
+        if (oldView == null) {
             oldView = holder.itemView
             holder.itemView.setBackgroundResource(R.drawable.bg_choosed_category)
         }
@@ -47,7 +50,7 @@ ListAdapter<ProductCategory, ProductCategoryAdapter.MyViewHolder>(
     }
 }
 
-class ProductCategoryDiffUtil : DiffUtil.ItemCallback<ProductCategory>(){
+class ProductCategoryDiffUtil : DiffUtil.ItemCallback<ProductCategory>() {
     override fun areItemsTheSame(oldItem: ProductCategory, newItem: ProductCategory): Boolean {
         return oldItem.categoryId == newItem.categoryId
     }
