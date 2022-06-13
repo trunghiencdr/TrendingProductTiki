@@ -19,6 +19,7 @@ import com.example.tikitrendingproject.retrofit.service.TrendingProductService
 import com.example.tikitrendingproject.util.ItemMargin
 import com.example.tikitrendingproject.util.SpacesItemDecoration
 import com.example.tikitrendingproject.util.isNetworkAvailable
+import com.example.tikitrendingproject.util.loadBackground
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModel
 import com.example.tikitrendingproject.viewmodel.TrendingProductViewModelFactory
 import kotlinx.coroutines.GlobalScope
@@ -40,7 +41,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setUpBinding() {
-
         binding.setVariable(BR.viewModel, viewModel)
         binding.executePendingBindings()
         binding.rvProductCategory.adapter = viewModel.productCategoryAdapter
@@ -71,15 +71,11 @@ class MainActivity : AppCompatActivity() {
         } else {
             viewModel.callDataFromLocal(binding.root)
         }
-
-        viewModel.getLoading().observe(this, Observer {
-            if (it) {
-                binding.progressBar.visibility = android.view.View.VISIBLE
-            } else {
-                binding.progressBar.visibility = android.view.View.GONE
+        viewModel.urlBackground.observe(this, Observer {
+            url -> url?.let {
+                loadBackground(binding.imageViewBackground, it)
             }
         })
-
         return viewModel
 
     }

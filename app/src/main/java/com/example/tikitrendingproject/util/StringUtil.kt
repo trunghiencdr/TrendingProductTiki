@@ -7,7 +7,10 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.example.tikitrendingproject.R
 import com.google.android.material.snackbar.Snackbar
 import java.text.NumberFormat
 import java.util.*
@@ -82,4 +85,13 @@ fun onSNACK(view: View){
 fun writeLogDebug(message: String){
     if(Constant.VISIBLE_LOG)
     Log.d(Constant.TAG_DEBUG, message)
+}
+
+fun loadBackground(imageView: ImageView, url: String){
+    //Picasso.get().load(url).into(view)
+    Glide.with(imageView.context)
+        .load(url)
+        .error(R.drawable.error_image)
+        .placeholder(R.drawable.error_image)
+        .into(imageView)
 }

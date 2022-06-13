@@ -87,7 +87,7 @@ class TrendingProductViewModel constructor(
         trendingProductRepository.getTrendingProduct(viewModelScope, 0, 20) { metaData ->
             if (metaData != null) {
                 _trendingProductCategory.postValue(metaData.items)
-//                _urlBackground.postValue(metaData.backgroundImage)
+                _urlBackground.postValue(metaData.backgroundImage)
                 // save to database local
                 saveDataToSql(metaData = metaData)
                 metaData.items?.get(0)?.let {
@@ -97,7 +97,7 @@ class TrendingProductViewModel constructor(
 
             } else {
                 _trendingProductCategory.postValue(null)
-//                _urlBackground.postValue(null)
+                _urlBackground.postValue(null)
             }
         }
     }
@@ -200,11 +200,11 @@ class TrendingProductViewModel constructor(
 
     fun callDataFromLocal(view: View) {
         Snackbar.make(view, "Your are in offline", Snackbar.LENGTH_LONG).show()
-        callBackground()
-        callListCategory()
+        callMetaDataFromLocal()
+        callListCategoryFromLocal()
     }
 
-    fun callBackground() {
+    fun callMetaDataFromLocal(){
         CoroutineScope(Dispatchers.IO).launch {
             var listMeta = topTrendingRepository.findMetaDataByType("top_trending")
             withContext(Dispatchers.Main) {
@@ -217,7 +217,7 @@ class TrendingProductViewModel constructor(
         }
     }
 
-    fun callListCategory() {
+    fun callListCategoryFromLocal() {
         runBlocking {
             val job = launch {
                 var listCategory = topTrendingRepository.getAllProductCategory()
@@ -293,18 +293,17 @@ class TrendingProductViewModel constructor(
                         }
                     }
                     .distinctUntilChanged()
-                    .flatMapLatest{
-                        query->
+                    .flatMapLatest { query ->
                         searchProduct(categorySelected?.categoryId!!, query, 0, 20).catch {
                             emitAll(flowOf(emptyList()))
                         }
                     }
                     .flowOn(Dispatchers.IO)
-                    .collect {
-                        products -> _trendingProduct.postValue(products)
+                    .collect { products ->
+                        _trendingProduct.postValue(products)
                         loading.postValue(false)
                     }
-                        // search for products that match query
+                // search for products that match query
 
 
             }
@@ -324,8 +323,10 @@ class TrendingProductViewModel constructor(
             cursor,
             limit
         )
-        listProducts?.let{
-            return flowOf(it.filter { it.name.contains(query) or it.price.toString().contains(query) })
+        listProducts?.let {
+            return flowOf(it.filter {
+                it.name.contains(query) or it.price.toString().contains(query)
+            })
         }
         return flowOf(emptyList())
     }
@@ -339,7 +340,7 @@ class TrendingProductViewModel constructor(
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText != null) {
-                    loading.value=true
+                    loading.value = true
                     searchQuery.value = newText
                 }
                 return true
