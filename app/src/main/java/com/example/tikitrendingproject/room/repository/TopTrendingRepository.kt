@@ -42,8 +42,7 @@ class TopTrendingRepository(private val context: Context) {
     }
 
     @Transaction
-    suspend fun insertProductCategory(item: ProductCategory?): Long{
-        var resultEnd: Long = 0
+    suspend fun insertProductCategory(item: ProductCategory?){
         CoroutineScope(Dispatchers.IO).launch{
             var result = categoryDao.insert(item)
             if(result>0){
@@ -51,10 +50,8 @@ class TopTrendingRepository(private val context: Context) {
                 item?.images?.forEach {
                         it -> imageDao.insert(Image(it, item.categoryId))
                 }
-                resultEnd = 1
             }
         }
-        return resultEnd
     }
 
     suspend fun getAllProductCategory(): List<CategoryWithImages> {
