@@ -22,10 +22,10 @@ class TopTrendingRepository(private val context: Context) {
     private lateinit var productDao: ProductDao
     private lateinit var quantitySoldDao: QuantitySoldDao
     private lateinit var productCategoryCrossRefDao: ProductCategoryCrossRefDao
-    public var TAG = TopTrendingRepository::class.java
+    public var TAG = TopTrendingRepository::class.java.canonicalName
 
     init {
-        val myRoomDatabase = DatabaseBuilder.getInstance(context).let {
+        DatabaseBuilder.getInstance(context).let {
             metaDataDao = it.metaDataDao()
             imageDao = it.imageDao()
             categoryDao = it.productCategoryDao()
@@ -38,14 +38,10 @@ class TopTrendingRepository(private val context: Context) {
     }
 
     fun insertMetaDataAndCategory(item: MetaData?) {
-        GlobalScope.launch {
-            withContext(Dispatchers.IO) {
-                insertMetaData(item)
-                item?.items.let { products ->
-                    products?.forEach {
-                        insertProductCategory(it)
-                    }
-                }
+        insertMetaData(item)
+        item?.items.let { categorys ->
+            categorys?.forEach {
+                insertProductCategory(it)
             }
         }
     }
@@ -56,7 +52,7 @@ class TopTrendingRepository(private val context: Context) {
                 try {
                     metaDataDao.insert(item)
                 } catch (e: Exception) {
-                    writeLogDebug("in: $TAG fun: metaDataDao.insert(item) error: ${e.localizedMessage}")
+                    writeLogDebug("in class: $TAG fun: metaDataDao.insert(item) error: ${e.localizedMessage}")
                 }
             }
         }
@@ -75,38 +71,52 @@ class TopTrendingRepository(private val context: Context) {
                     result = categoryDao.insert(item)
                 } catch (e: Exception) {
                     writeLogDebug("in class $TAG at categoryDao.insert(item) with exception:${e.localizedMessage} ")
+                    return@withContext
                 }
-                if (result > 0) {
-                    // insert image of each category
-                    item?.images?.forEach { urlImage ->
-                        launch {
-                            writeLogDebug("Thread of insert image for category: ${Thread.currentThread().name}")
-                            insertImageForCategory(Image(urlImage, item.categoryId))
-                        }
+                //check if result =-1 (conflict primary key) then update item
+                if (result < 0) {
+                    try {
+                        categoryDao.update(item)
+                    } catch (e: Exception) {
+                        writeLogDebug("in class $TAG at categoryDao.update(item) with exception:${e.localizedMessage} ")
+                        return@withContext
                     }
+                }
+
+                // insert image of each category
+                item?.images?.forEach { urlImage ->
+//                    writeLogDebug("Test return fun")
+                    insertImageForCategory(Image(urlImage, item.categoryId))
                 }
             }
         }
+
     }
 
     private fun insertImageForCategory(image: Image) {
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
+                var result = 0
                 try {
                     imageDao.insert(image)
                 } catch (e: Exception) {
                     writeLogDebug("in class $TAG at imageDao.insert(image) with exception: ${e.localizedMessage}")
                 }
+                //update when item is conflict
+                if(result<0){
+                    try {
+                        imageDao.update(image)
+                    } catch (e: Exception) {
+                        writeLogDebug("in class $TAG at imageDao.update(image) with exception: ${e.localizedMessage}")
+                    }
+                }
+
             }
         }
     }
 
     suspend fun getAllProductCategory(): List<CategoryWithImages> {
         return categoryDao.getAll()
-    }
-
-    suspend fun insertProducts(items: List<Product>?): List<Long> {
-        return productDao.insert(items)
     }
 
     suspend fun insertProduct(item: Product?): Long {
@@ -116,9 +126,19 @@ class TopTrendingRepository(private val context: Context) {
     fun insertQuantitySold(quantitySold: QuantitySold?) {
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
-                val response = quantitySoldDao.insert(quantitySold)
-                if (response <= 0) {
-                    Log.d("HIEN", "$TAG :insertQuantitySoldToLocal-$response")
+                var result = 0L
+                try {
+                    result = quantitySoldDao.insert(quantitySold)
+                }catch (e: Exception){
+                    writeLogDebug(TAG, "quantitySoldDao.insert(quantitySold)", e)
+                }
+
+                if (result < 0) {
+                    try {
+                         quantitySoldDao.update(quantitySold)
+                    }catch (e: Exception){
+                        writeLogDebug(TAG, "quantitySoldDao.update(quantitySold)", e)
+                    }
                 }
             }
         }
@@ -127,9 +147,19 @@ class TopTrendingRepository(private val context: Context) {
     fun insertProductCategoryCrossRef(item: ProductCategoryCrossRef) {
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
-                val response = productCategoryCrossRefDao.insert(item)
-                if (response <= 0) {
-                    Log.d("HIEN", "$TAG :fun insertProductCategoryCrossRef-$response")
+                var result = 0L
+                try {
+                    result = productCategoryCrossRefDao.insert(item)
+                }catch (e: Exception){
+                    writeLogDebug(TAG, "productCategoryCrossRefDao.insert(item)", e)
+                }
+
+                if (result < 0) {
+                    try {
+                         productCategoryCrossRefDao.update(item)
+                    }catch (e: Exception){
+                        writeLogDebug(TAG, "productCategoryCrossRefDao.insert(item)", e)
+                    }
                 }
             }
         }
@@ -143,26 +173,10 @@ class TopTrendingRepository(private val context: Context) {
         return productCategoryCrossRefDao.findByCategoryId(id)
     }
 
-//    fun searchProductByCategoryIdAndProductNameOrProductPrice(
-//        coroutineScope: CoroutineScope,
-//        categoryId: Int,
-//        productName: String,
-//        productPrice: String
-//    ): Flow<List<Product>> {
-//        coroutineScope.launch {
-//            withContext(Dispatchers)
-//        }
-//        return productDao.searchProductByCategoryIdAndProductNameOrProductPrice(
-//            categoryId,
-//            productName,
-//            productPrice
-//        )
-//    }
-
-    fun findProductsBySku(coroutineScope: CoroutineScope,sku: String): List<Product> {
+    fun findProductsBySku(coroutineScope: CoroutineScope, sku: String): List<Product> {
         var products: List<Product> = ArrayList()
         coroutineScope.launch {
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 try {
                     products = listOf(productDao.findBySku(sku))
                 } catch (e: Exception) {

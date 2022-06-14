@@ -12,6 +12,7 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.example.tikitrendingproject.R
 import com.google.android.material.snackbar.Snackbar
+import java.lang.Exception
 import java.text.NumberFormat
 import java.util.*
 
@@ -87,6 +88,11 @@ fun writeLogDebug(message: String){
     Log.d(Constant.TAG_DEBUG, message)
 }
 
+fun writeLogDebug(tag: String, func: String, exception: Exception){
+    if(Constant.VISIBLE_LOG)
+        Log.d(Constant.TAG_DEBUG, "$tag, $func, ${exception.localizedMessage}")
+}
+
 fun loadBackground(imageView: ImageView, url: String){
     //Picasso.get().load(url).into(view)
     Glide.with(imageView.context)
@@ -95,3 +101,4 @@ fun loadBackground(imageView: ImageView, url: String){
         .placeholder(R.drawable.error_image)
         .into(imageView)
 }
+

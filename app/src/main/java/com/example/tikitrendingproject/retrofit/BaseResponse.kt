@@ -17,6 +17,21 @@ class BaseResponse {
                 data.invoke(response.body()?.data)
             }
         }
+
+        inline fun <reified T> processReturnValue(response: Response<ResponseObject<T>>): T? {
+            if (response.isSuccessful && response.body()?.status == 200) {
+                response.body()?.data?.let { return it}
+            } else if (response.code() in 401..510) {
+                Log.d(
+                    "HIEN",
+                    "Process api ${HttpException(response).localizedMessage} - ${
+                        response.errorBody()?.string()
+                    }"
+                )
+                return null
+            }
+            return response.body()?.data
+        }
     }
 
 }

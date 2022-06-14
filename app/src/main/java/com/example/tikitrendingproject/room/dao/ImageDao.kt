@@ -10,7 +10,7 @@ interface ImageDao {
     @Query("SELECT * FROM Image")
     fun getAll(): Flow<List<Image>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(image: Image)
 
 //    @Transaction
@@ -22,4 +22,7 @@ interface ImageDao {
 
     @Delete
     suspend fun delete(image: Image): Int
+
+    @Query("DELETE FROM Image")
+    suspend fun deleteAll()
 }

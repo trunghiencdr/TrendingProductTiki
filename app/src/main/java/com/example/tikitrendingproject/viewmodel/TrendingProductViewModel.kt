@@ -12,17 +12,26 @@ import com.example.tikitrendingproject.model.*
 import com.example.tikitrendingproject.retrofit.BaseResponse
 import com.example.tikitrendingproject.retrofit.repository.TrendingProductRepository
 import com.example.tikitrendingproject.room.repository.TopTrendingRepository
+import com.example.tikitrendingproject.util.RxSearchObservable
 import com.example.tikitrendingproject.util.isNetworkAvailable
+import com.example.tikitrendingproject.util.writeLogDebug
 import com.example.tikitrendingproject.view.Action
 import com.example.tikitrendingproject.view.ProductCategoryAdapter
 import com.example.tikitrendingproject.view.TrendingProductAdapter
 import com.google.android.material.snackbar.Snackbar
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableSource
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.kotlin.toObservable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.selects.select
 import retrofit2.Response
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -204,7 +213,7 @@ class TrendingProductViewModel constructor(
         callListCategoryFromLocal()
     }
 
-    fun callMetaDataFromLocal(){
+    fun callMetaDataFromLocal() {
         CoroutineScope(Dispatchers.IO).launch {
             var listMeta = topTrendingRepository.findMetaDataByType("top_trending")
             withContext(Dispatchers.Main) {
@@ -269,10 +278,70 @@ class TrendingProductViewModel constructor(
         queryTextChangeStateFlow.value = search
     }
 
+    var searchText: String = ""
+    fun observerSearchViewWithRx(searchView: SearchView) {
+
+        RxSearchObservable.fromView(searchView)
+            .debounce(300, TimeUnit.MILLISECONDS)
+            .filter { query ->
+                writeLogDebug("In filter ")
+                writeLogDebug("Query: $query!!!")
+                if (query == null || query.isEmpty()) {
+                    callTrendingProductByCategoryId(
+                        categoryId = categorySelected?.categoryId!!,
+                        0,
+                        20
+                    )
+                    return@filter false
+                } else {
+                    searchText = query
+                    return@filter true
+                }
+            }
+            .distinctUntilChanged()
+            .switchMap {
+                trendingProductRepository.getProductByCategoryIdWithRx(categorySelected?.categoryId!!, 0, 20)
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onNext =
+                {
+                    if(it.isSuccessful && it.body()?.status==200)
+                    _trendingProduct.postValue(it.body()!!.data.data.filter { it.name.lowercase().contains(searchText.lowercase()) })
+                    else _trendingProduct.postValue(null)
+                },
+                onError =
+                {
+                    it.printStackTrace()
+                    _trendingProduct.postValue(null)
+                }
+            )
+    }
+
+
+    suspend fun getProductsByCategoryIdTypeObservable(
+        categoryId: Int,
+        searchText: String,
+        cursor: Int,
+        limit: Int
+    ): Observable<List<Product>> {
+
+        val list = trendingProductRepository.getTrendingProductByCategoryId2(
+            categoryId,
+            cursor,
+            limit
+        )
+        if (list.isEmpty()) return Observable.just(listOf())
+        else return Observable.just(list.filter {
+            it.name.lowercase().contains(searchText.lowercase())
+        })
+    }
+
+
     fun observerSearchView(searchView: SearchView) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-
                 searchView.getQueryTextChangeStateFlow()
                     .debounce(300)
                     .filter { query ->
@@ -317,12 +386,8 @@ class TrendingProductViewModel constructor(
         cursor: Int,
         limit: Int
     ): Flow<List<Product>> {
-        var listProducts = trendingProductRepository.getTrendingProductByCategoryId2(
-            viewModelScope,
-            categoryId,
-            cursor,
-            limit
-        )
+        var listProducts =
+            trendingProductRepository.getTrendingProductByCategoryId2(categoryId, cursor, limit)
         listProducts?.let {
             return flowOf(it.filter {
                 it.name.contains(query) or it.price.toString().contains(query)

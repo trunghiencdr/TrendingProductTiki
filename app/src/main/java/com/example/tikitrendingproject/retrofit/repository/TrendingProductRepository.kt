@@ -1,10 +1,14 @@
 package com.example.tikitrendingproject.retrofit.repository
 
+import com.example.tikitrendingproject.model.Data
 import com.example.tikitrendingproject.model.MetaData
 import com.example.tikitrendingproject.model.Product
+import com.example.tikitrendingproject.model.ResponseObject
 import com.example.tikitrendingproject.retrofit.BaseResponse
 import com.example.tikitrendingproject.retrofit.service.TrendingProductService
+import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.*
+import retrofit2.Response
 
 class TrendingProductRepository constructor(private val service: TrendingProductService) {
     fun getTrendingProduct(
@@ -52,17 +56,28 @@ class TrendingProductRepository constructor(private val service: TrendingProduct
     }
 
     suspend fun getTrendingProductByCategoryId2(
-        coroutineScope: CoroutineScope,
         categoryId: Int,
         cursor: Int,
         limit: Int
-    ): List<Product>? {
-       var response =  service.getProductByCategoryId(
+    ): List<Product> {
+        var response = service.getProductByCategoryId(
             categoryId,
             cursor, limit
         )
-        if(response.isSuccessful && response.body()?.status==200){
-            return response.body()!!.data.data
-        }else return listOf()
+        val data = BaseResponse.processReturnValue(response)
+        if (data != null) {
+            return data.data
+        } else {
+            return listOf()
+        }
     }
+
+    fun getProductByCategoryIdWithRx(
+        categoryId: Int,
+        cursor: Int,
+        limit: Int
+    ): Observable<Response<ResponseObject<Data>>> {
+        return service.getProductByCategoryIdWithRx(categoryId, cursor, limit)
+    }
+
 }

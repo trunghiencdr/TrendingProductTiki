@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvProductCategory.addItemDecoration(ItemMargin(0, 0, 10, 0))
         binding.rvProduct.addItemDecoration(SpacesItemDecoration(10))
         viewModel.observerSearchView(binding.searchView)
+//        viewModel.observerSearchViewWithRx(binding.searchView)
 
     }
 

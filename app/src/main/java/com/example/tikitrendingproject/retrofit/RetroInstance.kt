@@ -3,6 +3,7 @@ package com.example.tikitrendingproject.retrofit
 import android.content.Context
 import android.util.Log
 import com.example.tikitrendingproject.util.isNetworkAvailable
+import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
 import okhttp3.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -76,6 +77,7 @@ object RetroInstance {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .client(initClient(context))
             .build()
     }
