@@ -413,5 +413,5 @@ class TrendingProductViewModel constructor(
         })
         return searchQuery
     }
-
+    // checkout
 }
